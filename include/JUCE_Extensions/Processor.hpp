@@ -116,7 +116,11 @@ namespace JUCE_Extensions
             program->changeProgramName(index, newName);
         }
 
-    protected:
+        DAWIOType& getDawIO() const { return *daw_io; }
+        ProgramType& getProgram() const { return *program; }
+        StateInformationType& getStateInformation() const { return *state_infortmation; }
+
+    private:
         std::unique_ptr<DAWIOType> daw_io;
         std::unique_ptr<ProgramType> program;
         std::unique_ptr<StateInformationType> state_infortmation;
