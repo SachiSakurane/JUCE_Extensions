@@ -39,6 +39,19 @@ namespace JUCE_Extensions
             return static_cast<value_type>(*parameter.getRawParameterValue(id_));
         }
 
+        void setValue(juce::AudioProcessorValueTreeState &parameter, value_type value) const {
+            if (juce::AudioProcessorParameter* p = parameter.getParameter (id_)) {
+                const float newValue = parameter
+                    .getParameterRange (id_)
+                    .convertTo0to1 (value);
+
+                if (p->getValue() != newValue)
+                {
+                    p->setValueNotifyingHost (newValue);
+                }
+            }
+        }
+
         template <class Attachment, class Control>
         void setAttachment(std::unique_ptr<Attachment>& attachment, juce::AudioProcessorValueTreeState& parameter, Control& control) const
         {
@@ -76,9 +89,22 @@ namespace JUCE_Extensions
                     juce::String());
         }
 
-        bool getValue (juce::AudioProcessorValueTreeState &parameter) const
+        bool getValue (const juce::AudioProcessorValueTreeState &parameter) const
         {
             return static_cast<bool>(*parameter.getRawParameterValue(id_));
+        }
+
+        void setValue(juce::AudioProcessorValueTreeState &parameter, bool flag) const {
+            if (juce::AudioProcessorParameter* p = parameter.getParameter (id_)) {
+                const float newValue = parameter
+                    .getParameterRange (id_)
+                    .convertTo0to1 (flag ? 1.f : 0.f);
+
+                if (p->getValue() != newValue)
+                {
+                    p->setValueNotifyingHost (newValue);
+                }
+            }
         }
 
         template <class Attachment, class Control>
