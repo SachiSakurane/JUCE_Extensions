@@ -8,66 +8,80 @@
 namespace JUCE_Extensions
 {
     template <class Type>
-    class Parameter {};
+    class Parameter
+    {
+    };
 
-    template<>
+    template <>
     class Parameter<float>
     {
     public:
         using value_type = float;
 
         Parameter(
-            const std::string& id, const std::string& name, value_type default_value, const riw::value_range<value_type>& range,
-            std::function<juce::String(float, int)> string_function = nullptr)
-        : id_(id), name_(name), default_value_(default_value), range_(range), string_function_(std::move(string_function))
-        {}
+            const std::string &_id,
+            const std::string &_name,
+            value_type _default_value,
+            const riw::value_range<value_type> &_range,
+            value_type _center_for_skew,
+            std::function<juce::String(float, int)> _string_function = nullptr)
+            : id{_id}, name{_name}, default_value{_default_value}, range{_range}, center_for_skew{_center_for_skew},
+              string_function{std::move(_string_function)}
+        {
+        }
 
         [[nodiscard]] std::unique_ptr<juce::AudioParameterFloat> makeParameter() const
         {
+            auto normalisable_range = juce::NormalisableRange<value_type>(range.min, range.max);
+            normalisable_range.setSkewForCentre(center_for_skew);
+
             return std::make_unique<juce::AudioParameterFloat>(
-                juce::ParameterID{id_, JucePlugin_VersionCode},
-                name_,
-                juce::NormalisableRange<value_type>(range_.min, range_.max),
-                static_cast<value_type>(default_value_),
+                juce::ParameterID{id, JucePlugin_VersionCode},
+                name,
+                normalisable_range,
+                static_cast<value_type>(default_value),
                 juce::String(),
                 juce::AudioProcessorParameter::genericParameter,
-                string_function_);
+                string_function);
         }
 
-        value_type getValue (juce::AudioProcessorValueTreeState &parameter) const
+        value_type getValue(juce::AudioProcessorValueTreeState &parameter) const
         {
-            return static_cast<value_type>(*parameter.getRawParameterValue(id_));
+            return static_cast<value_type>(*parameter.getRawParameterValue(id));
         }
 
-        void setValue(juce::AudioProcessorValueTreeState &parameter, value_type value) const {
-            if (juce::AudioProcessorParameter* p = parameter.getParameter (id_)) {
+        void setValue(juce::AudioProcessorValueTreeState &parameter, value_type value) const
+        {
+            if (juce::AudioProcessorParameter *p = parameter.getParameter(id))
+            {
                 const float newValue = parameter
-                    .getParameterRange (id_)
-                    .convertTo0to1 (value);
+                                           .getParameterRange(id)
+                                           .convertTo0to1(value);
 
                 if (p->getValue() != newValue)
                 {
-                    p->setValueNotifyingHost (newValue);
+                    p->setValueNotifyingHost(newValue);
                 }
             }
         }
 
         template <class Attachment, class Control>
-        void setAttachment(std::unique_ptr<Attachment>& attachment, juce::AudioProcessorValueTreeState& parameter, Control& control) const
+        void setAttachment(std::unique_ptr<Attachment> &attachment, juce::AudioProcessorValueTreeState &parameter, Control &control) const
         {
-            attachment = std::make_unique<Attachment>(parameter, id_, control);
+            attachment = std::make_unique<Attachment>(parameter, id, control);
         }
 
-        riw::value_range<value_type> getRange() const { return range_; }
-        const std::string& getID() const { return id_; }
+        riw::value_range<value_type> getRange() const { return range; }
+        const std::string &getID() const { return id; }
+
+        const std::string id;
+        const std::string name;
+        const value_type default_value;
+        const riw::value_range<value_type> range;
+        const value_type center_for_skew;
 
     private:
-        const std::string id_;
-        const std::string name_;
-        const value_type default_value_;
-        const riw::value_range<value_type> range_;
-        std::function<juce::String(float, int)> string_function_;
-
+        std::function<juce::String(float, int)> string_function;
     };
 
     template <>
@@ -76,48 +90,51 @@ namespace JUCE_Extensions
     public:
         using value_type = bool;
 
-        Parameter(const std::string& id, const std::string& name, bool default_value)
-            : id_(id), name_(name), default_value_(default_value)
-        {}
+        Parameter(const std::string &_id, const std::string &_name, bool _default_value)
+            : id{_id}, name{_name}, default_value{_default_value}
+        {
+        }
 
         std::unique_ptr<juce::AudioParameterBool> makeParameter() const
         {
             return std::make_unique<juce::AudioParameterBool>(
-                    juce::ParameterID{id_, JucePlugin_VersionCode},
-                    name_,
-                    default_value_,
-                    juce::String());
+                juce::ParameterID{id, JucePlugin_VersionCode},
+                name,
+                default_value,
+                juce::String());
         }
 
-        bool getValue (const juce::AudioProcessorValueTreeState &parameter) const
+        bool getValue(const juce::AudioProcessorValueTreeState &parameter) const
         {
-            return static_cast<bool>(*parameter.getRawParameterValue(id_));
+            return static_cast<bool>(*parameter.getRawParameterValue(id));
         }
 
-        void setValue(juce::AudioProcessorValueTreeState &parameter, bool flag) const {
-            if (juce::AudioProcessorParameter* p = parameter.getParameter (id_)) {
+        void setValue(juce::AudioProcessorValueTreeState &parameter, bool flag) const
+        {
+            if (juce::AudioProcessorParameter *p = parameter.getParameter(id))
+            {
                 const float newValue = parameter
-                    .getParameterRange (id_)
-                    .convertTo0to1 (flag ? 1.f : 0.f);
+                                           .getParameterRange(id)
+                                           .convertTo0to1(flag ? 1.f : 0.f);
 
                 if (p->getValue() != newValue)
                 {
-                    p->setValueNotifyingHost (newValue);
+                    p->setValueNotifyingHost(newValue);
                 }
             }
         }
 
         template <class Attachment, class Control>
-        void setAttachment(std::unique_ptr<Attachment>& attachment, juce::AudioProcessorValueTreeState& parameter, Control& control) const
+        void setAttachment(std::unique_ptr<Attachment> &attachment, juce::AudioProcessorValueTreeState &parameter, Control &control) const
         {
-            attachment = std::make_unique<Attachment>(parameter, id_, control);
+            attachment = std::make_unique<Attachment>(parameter, id, control);
         }
 
-        const std::string& getID() const { return id_; }
+        const std::string &getID() const { return id; }
+        const std::string id;
+        const std::string name;
+        const bool default_value;
 
     private:
-        const std::string id_;
-        const std::string name_;
-        const bool default_value_;
     };
 }
