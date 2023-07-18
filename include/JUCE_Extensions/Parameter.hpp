@@ -23,22 +23,21 @@ namespace JUCE_Extensions
             const std::string &_name,
             value_type _default_value,
             const riw::value_range<value_type> &_range,
-            value_type _center_for_skew,
+            value_type _interval,
+            value_type center_for_skew,
             std::function<juce::String(float, int)> _string_function = nullptr)
-            : id{_id}, name{_name}, default_value{_default_value}, range{_range}, center_for_skew{_center_for_skew},
+            : id{_id}, name{_name}, default_value{_default_value}, interval{_interval}, range{_range},
+              skew{std::log(0.5f) / std::log((center_for_skew - range.min) / riw::length(range))},
               string_function{std::move(_string_function)}
         {
         }
 
         [[nodiscard]] std::unique_ptr<juce::AudioParameterFloat> makeParameter() const
         {
-            auto normalisable_range = juce::NormalisableRange<value_type>(range.min, range.max);
-            normalisable_range.setSkewForCentre(center_for_skew);
-
             return std::make_unique<juce::AudioParameterFloat>(
                 juce::ParameterID{id, JucePlugin_VersionCode},
                 name,
-                normalisable_range,
+                juce::NormalisableRange<value_type>(range.min, range.max, interval, skew),
                 static_cast<value_type>(default_value),
                 juce::String(),
                 juce::AudioProcessorParameter::genericParameter,
@@ -62,6 +61,8 @@ namespace JUCE_Extensions
                 {
                     p->setValueNotifyingHost(newValue);
                 }
+            } else {
+                assert(false);
             }
         }
 
@@ -71,14 +72,30 @@ namespace JUCE_Extensions
             attachment = std::make_unique<Attachment>(parameter, id, control);
         }
 
+        value_type normalize(value_type value) const
+        {
+            auto proportion = riw::proportion(value, range);
+            return skew == static_cast<value_type>(1) ? proportion : std::pow(proportion, skew);
+        }
+
+        value_type value(value_type proportion) const
+        {
+            proportion = std::clamp(proportion, static_cast<value_type>(0), static_cast<value_type>(1));
+            if (skew != static_cast<value_type>(1))
+                proportion = std::exp(std::log(proportion) / skew);
+
+            return range.min + riw::length(range) * proportion;
+        }
+
         riw::value_range<value_type> getRange() const { return range; }
         const std::string &getID() const { return id; }
 
         const std::string id;
         const std::string name;
         const value_type default_value;
+        const value_type interval;
         const riw::value_range<value_type> range;
-        const value_type center_for_skew;
+        const value_type skew;
 
     private:
         std::function<juce::String(float, int)> string_function;
