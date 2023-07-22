@@ -24,10 +24,10 @@ namespace JUCE_Extensions
             value_type _default_value,
             const riw::value_range<value_type> &_range,
             value_type _interval,
-            value_type center_for_skew,
+            value_type _skew,
             std::function<juce::String(float, int)> _string_function = nullptr)
             : id{_id}, name{_name}, default_value{_default_value}, interval{_interval}, range{_range},
-              skew{std::log(0.5f) / std::log((center_for_skew - range.min) / riw::length(range))},
+              skew{_skew},
               string_function{std::move(_string_function)}
         {
         }
