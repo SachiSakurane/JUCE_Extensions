@@ -102,6 +102,70 @@ namespace JUCE_Extensions
     };
 
     template <>
+    class Parameter<int>
+    {
+    public:
+        using value_type = int;
+
+        Parameter(
+            const std::string &_id,
+            const std::string &_name,
+            int _default_value,
+            const riw::value_range<value_type> &_range,
+            std::function<juce::String(int, int)> _string_function)
+            : id{_id}, name{_name}, default_value{_default_value}, range{_range}, string_function{_string_function}
+        {
+        }
+
+        std::unique_ptr<juce::AudioParameterInt> makeParameter() const
+        {
+            return std::make_unique<juce::AudioParameterInt>(
+                juce::ParameterID{id, JucePlugin_VersionCode},
+                name,
+                range.min,
+                range.max,
+                default_value,
+                juce::String(),
+                string_function);
+        }
+
+        int getValue(const juce::AudioProcessorValueTreeState &parameter) const
+        {
+            return static_cast<bool>(*parameter.getRawParameterValue(id));
+        }
+
+        void setValue(juce::AudioProcessorValueTreeState &parameter, int value) const
+        {
+            if (juce::AudioProcessorParameter *p = parameter.getParameter(id))
+            {
+                const float newValue = parameter
+                                           .getParameterRange(id)
+                                           .convertTo0to1(static_cast<float>(value));
+
+                if (p->getValue() != newValue)
+                {
+                    p->setValueNotifyingHost(newValue);
+                }
+            }
+        }
+
+        template <class Attachment, class Control>
+        void setAttachment(std::unique_ptr<Attachment> &attachment, juce::AudioProcessorValueTreeState &parameter, Control &control) const
+        {
+            attachment = std::make_unique<Attachment>(parameter, id, control);
+        }
+
+        const std::string &getID() const { return id; }
+        const std::string id;
+        const std::string name;
+        const int default_value;
+        const riw::value_range<value_type> range;
+
+    private:
+        std::function<juce::String(int, int)> string_function;
+    };
+
+    template <>
     class Parameter<bool>
     {
     public:
