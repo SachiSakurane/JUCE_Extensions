@@ -3,6 +3,7 @@
 #include <string>
 #include <functional>
 
+#include <juce_audio_processors/juce_audio_processors.h>
 #include <riw/algorithm/value_range.hpp>
 
 namespace JUCE_Extensions
