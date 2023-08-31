@@ -60,7 +60,9 @@ namespace JUCE_Extensions
 
                 if (p->getValue() != newValue)
                 {
+                    p->beginChangeGesture();
                     p->setValueNotifyingHost(newValue);
+                    p->endChangeGesture();
                 }
             } else {
                 assert(false);
