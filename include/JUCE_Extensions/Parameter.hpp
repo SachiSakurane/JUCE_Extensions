@@ -134,7 +134,7 @@ namespace JUCE_Extensions
 
         int getValue(const juce::AudioProcessorValueTreeState &parameter) const
         {
-            return static_cast<bool>(*parameter.getRawParameterValue(id));
+            return static_cast<int>(*parameter.getRawParameterValue(id));
         }
 
         void setValue(juce::AudioProcessorValueTreeState &parameter, int value) const
