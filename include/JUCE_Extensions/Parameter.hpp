@@ -40,9 +40,9 @@ namespace JUCE_Extensions
                 name,
                 juce::NormalisableRange<value_type>(range.min, range.max, interval, skew),
                 static_cast<value_type>(default_value),
-                juce::String(),
-                juce::AudioProcessorParameter::genericParameter,
-                string_function);
+                juce::AudioParameterFloatAttributes()
+                    .withCategory(juce::AudioProcessorParameter::genericParameter)
+                    .withStringFromValueFunction(std::move(string_function)));
         }
 
         value_type getValue(juce::AudioProcessorValueTreeState &parameter) const
@@ -128,8 +128,7 @@ namespace JUCE_Extensions
                 range.min,
                 range.max,
                 default_value,
-                juce::String(),
-                string_function);
+                juce::AudioParameterIntAttributes().withStringFromValueFunction(std::move(string_function)));
         }
 
         int getValue(const juce::AudioProcessorValueTreeState &parameter) const
@@ -184,8 +183,7 @@ namespace JUCE_Extensions
             return std::make_unique<juce::AudioParameterBool>(
                 juce::ParameterID{id, JucePlugin_VersionCode},
                 name,
-                default_value,
-                juce::String());
+                default_value);
         }
 
         bool getValue(const juce::AudioProcessorValueTreeState &parameter) const
