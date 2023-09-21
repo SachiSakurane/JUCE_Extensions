@@ -81,7 +81,7 @@ namespace JUCE_Extensions
             return skew == static_cast<value_type>(1) ? proportion : std::pow(proportion, skew);
         }
 
-        value_type value(value_type proportion) const
+        value_type getValue(value_type proportion) const
         {
             proportion = std::clamp(proportion, static_cast<value_type>(0), static_cast<value_type>(1));
             if (skew != static_cast<value_type>(1))
