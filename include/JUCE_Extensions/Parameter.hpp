@@ -50,7 +50,7 @@ namespace JUCE_Extensions
             return static_cast<value_type>(*parameter.getRawParameterValue(id));
         }
 
-        void setValue(juce::AudioProcessorValueTreeState &parameter, value_type value) const
+        void setValue(juce::AudioProcessorValueTreeState &parameter, value_type value, bool notify = true) const
         {
             if (juce::AudioProcessorParameter *p = parameter.getParameter(id))
             {
@@ -60,9 +60,16 @@ namespace JUCE_Extensions
 
                 if (p->getValue() != newValue)
                 {
-                    p->beginChangeGesture();
-                    p->setValueNotifyingHost(newValue);
-                    p->endChangeGesture();
+                    if (notify)
+                    {
+                        p->beginChangeGesture();
+                        p->setValueNotifyingHost(newValue);
+                        p->endChangeGesture();
+                    }
+                    else
+                    {
+                        p->setValueNotifyingHost(newValue);
+                    }
                 }
             } else {
                 assert(false);
@@ -146,7 +153,9 @@ namespace JUCE_Extensions
 
                 if (p->getValue() != newValue)
                 {
+                    p->beginChangeGesture();
                     p->setValueNotifyingHost(newValue);
+                    p->endChangeGesture();
                 }
             }
         }
@@ -201,7 +210,9 @@ namespace JUCE_Extensions
 
                 if (p->getValue() != newValue)
                 {
+                    p->beginChangeGesture();
                     p->setValueNotifyingHost(newValue);
+                    p->endChangeGesture();
                 }
             }
         }
